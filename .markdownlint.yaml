@@ -1,0 +1,14 @@
+---
+# Line length
+# https://github.com/DavidAnson/markdownlint/blob/v0.19.0/doc/Rules.md#md013
+MD013: false
+
+# Multiple headings with the same content
+# https://github.com/DavidAnson/markdownlint/blob/v0.19.0/doc/Rules.md#md024
+MD024:
+  allow_different_nesting: true
+
+# Multiple top level headings in the same document
+# https://github.com/DavidAnson/markdownlint/blob/v0.19.0/doc/Rules.md#md025
+MD025:
+  front_matter_title: ""
