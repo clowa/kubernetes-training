@@ -2,7 +2,7 @@
 
 The NetworkPolicy resource uses labels to determine which pods it will manage. The security rules defined in the resource are applied to groups of pods. This works in the same sense as security groups that cloud providers use to enforce policies on groups of resources.
 
-```
+````
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -37,7 +37,8 @@ spec:
     ports:
     - protocol: TCP
       port: 5978
-      
+
     ```
 
 
+````

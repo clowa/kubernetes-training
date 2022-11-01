@@ -2,17 +2,17 @@
 
 We’re doing the same thing here but on egress traffic. The following NetworkPolicy definition will deny all outgoing traffic unless allowed by another rule:
 
-
 ## Steps
+
 ```
 git clone https://github.com/collabnix/kubelabs.git
 cd kubelabs/Network_Policies101/
 kubectl apply -f default-deny-egress.yaml
 ```
+
 ## Verify Access - Denied All Egress
 
-We can see that this is the case by switching over to our “access” pod in the namespace and attempting to  wget google.com.
-
+We can see that this is the case by switching over to our “access” pod in the namespace and attempting to wget google.com.
 
 ```
  kubectl run --generator=run-pod/v1  --namespace=network-policy-demo access --rm -ti --image busybox /bin/sh
@@ -25,4 +25,4 @@ We can see that this is the case by switching over to our “access” pod in th
  wget: bad address 'google.com'
  / #
 
- ```
+```

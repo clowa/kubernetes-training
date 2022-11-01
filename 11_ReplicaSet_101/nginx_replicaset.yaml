@@ -16,5 +16,5 @@ spec:
         role: web
     spec:
       containers:
-      - name: testnginx
-        image: nginx
+        - name: testnginx
+          image: nginx

@@ -1,8 +1,8 @@
-
 # Secrets & ConfigMaps
 
-Kubernetes has two types of objects that can be used to inject configuration data into a container when it starts up: 
-- Secrets and 
+Kubernetes has two types of objects that can be used to inject configuration data into a container when it starts up:
+
+- Secrets and
 - ConfigMaps
 
 We will explore both Secrets and ConfigMaps with a real-world situation:
@@ -13,7 +13,7 @@ Secrets are a Kubernetes object intended for storing a small amount of sensitive
 
 ## Creating a Secret manually:
 
-first execute the script which is present on the directory script and craete the certs and keys 
+first execute the script which is present on the directory script and craete the certs and keys
 
 ```
 kubectl create secret tls nginx-certs --cert=tls.crt --key=tls.key
@@ -121,7 +121,7 @@ Both Secrets and ConfigMaps be the source of Kubernetes "volumes" and mounted in
 
 ```
 kubectl create -f nginx-ssl-deployment.yaml
-kubectl get pods -w 
+kubectl get pods -w
 kubectl describe pod <pod name>
 kubectl exec -it <pod name> /bin/sh`
 ```
@@ -131,4 +131,3 @@ Testing your websites with 443 expose your deployment and test your set up.
 ## Conclusion
 
 In this exercise, we learned how to create Kubernetes Secrets and ConfigMaps. We also learned how to use those Secrets and ConfigMaps. By volumemounts , we have also seen how it's easy to keep the configuration of individual instances of containers separate from the container image itself. By separating this configuration data, overhead is reduced to maintaining only a single image for a specific type of instance.
-

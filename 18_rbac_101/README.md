@@ -1,6 +1,5 @@
 # Role-Based Access Control (RBAC)
 
-
 RBAC is a security design that restricts access to valuable resources based on the role the user holds, hence the name role-based. To understand the importance and the need of having RBAC policies in place, let’s consider a system that doesn’t use it. Let’s say that you have an HR management solution, but the only security access measure used is that users must authenticate themselves through a username and a password. Having provided their credentials, users gain full access to every module in the system (recruitment, training, staff performance, salaries, etc.). A slightly more secure system will differentiate between regular user access and “admin” access, with the latter providing potentially destructive privileges. For example, ordinary users cannot delete a module from the system, whereas an administrator can. But still, users without admin access can read and modify the module’s data regardless of whether their current job entails doing this.
 
 If you worked as a Linux administrator for any length of time, you appreciate the importance of having a security system that implements a security matrix of access and authority. In the old days of Linux and UNIX, you could either be a “normal” user with minimal access to the system resources, or you can have “root” access. Root access virtually gives you full control over the machine that you can accidentally bring the whole system down. Needless to say that if an intruder could gain access to this root account, your entire system is at high risk. Accordingly, RBAC systems were introduced.
@@ -9,18 +8,14 @@ In a system that uses RBAC, there is minimal mention of the “superuser” or t
 
 ## Creating a Kubernetes User Account Using X509 Client Certificate
 
-### Pre-requisite
-
-- Open https://labs.play-with-k8s.com/
-- Follow https://collabnix.github.io/kubelabs/kube101.html to create 3 Node K8s Cluster
-
-
 ## Creating Client Certificates
 
 To create a client certificate in PWK you need to have openssl tool installed. To do that run the follwoing command
+
 ```
 [node1 ~]$ yum install openssl
 ```
+
 Let’s create a user account for our labs. Kubernetes supports several user authentication methods. It also supports combining more than one to authenticate a user. If one of the chained methods fail, the user is not verified. In this example, we’ll use only one authentication method, the X509 certificate to create a user account called div.
 
 First, we need to create the client key:
@@ -48,6 +43,7 @@ Next we need to copy the certificate and key that exists in kubernetes (you can 
 [node1 ~]$ ls
 anaconda-ks.cfg  ca.crt  ca.key  div.csr  div.key
 ```
+
 Now lets sign the user key and signing request with cluster certificate and key.
 
 ```
@@ -63,6 +59,7 @@ Getting CA Private Key
 [node1 ~]$ kubectl config set-credentials div --client-certificate=div.crt --client-key=div.key
 User "div" set.
 ```
+
 ### Testing permissions for the user
 
 ```
@@ -142,10 +139,10 @@ Error from server (Forbidden): pods "tomcat-5bf5db7bbd-xvwlr" is forbidden: User
 
 As you can see, the user is not able to delete the pods, yet it was able to list them. To understand why this behaviour happened, let’s have a look at the get-pods Role rules:
 
-	• The apiGroups is an array that contains the different API namespaces that this rule applies to. For example, a Pod definition uses apiVersion: v1. In our case, we chose "[\*]" which means any API namespace.
-	• The resources is an array that defines which resources this rule applies to. For example, we could give this user access to pods, jobs, and deployments.
-	• The verbs in an array that contains the allowed verbs. The verb in Kubernetes defines the type of action you need to apply to the resource. For example, the list verb is used against collections while "get" is used against a single resource. So, given the current access level granted to div, a command like kubectl --user=div get pods hostpath-pd will fail while kubectl --user=div get pods will get accepted. The reason is that the first command used the get verb because it requested information about a single pod. For more information about the different verbs used by Kubernetes check the official documentation.
-	
+    • The apiGroups is an array that contains the different API namespaces that this rule applies to. For example, a Pod definition uses apiVersion: v1. In our case, we chose "[\*]" which means any API namespace.
+    • The resources is an array that defines which resources this rule applies to. For example, we could give this user access to pods, jobs, and deployments.
+    • The verbs in an array that contains the allowed verbs. The verb in Kubernetes defines the type of action you need to apply to the resource. For example, the list verb is used against collections while "get" is used against a single resource. So, given the current access level granted to div, a command like kubectl --user=div get pods hostpath-pd will fail while kubectl --user=div get pods will get accepted. The reason is that the first command used the get verb because it requested information about a single pod. For more information about the different verbs used by Kubernetes check the official documentation.
+
 Let’s assume that we need div to have read-only access to the pods, both as a collection and as a single resource (get and list verbs). But we don’t want it to delete Pods directly. Instead, we grant it access to the Deployment resource and, through Deployments, it can delete and recreate pods (like though rolling updates). A policy to achieve this may look as follows:
 
 ```
@@ -167,11 +164,11 @@ rules:
 role.rbac.authorization.k8s.io/get-pods configured
 ```
 
-
 We made two changes here:
 
-	• Added the get and watch to the allowed verbs against Pods.
-	• Created a new rule that targets Deployments and specified the necessary verbs to give the user full permissions.
+    • Added the get and watch to the allowed verbs against Pods.
+    • Created a new rule that targets Deployments and specified the necessary verbs to give the user full permissions.
+
 Now, let’s test the different actions that our user is allowed or not allowed to do:
 First, we create a simple Nginx deployment :
 
@@ -251,7 +248,6 @@ The div user wouldn’t have access to the pods or the deployments unless workin
 
 But, sometimes you need to specify Roles that are not bound to a specific namespace but rather to the cluster as a whole. That’s when the ClusterRole comes into play.
 
-
 ## Cluster-Wide Authorization Using ClusterRoles
 
 ClusterRoles work the same as Roles, but they are applied to the cluster as a whole. They are typically used with service accounts (accounts used and managed internally by the cluster). For example, the Kubernetes External DNS Incubator (https://github.com/kubernetes-incubator/external-dns) project uses a ClusterRole to gain the necessary permissions it needs to work. The External DNS Incubator can be used to utilize external DNS servers for Kubernetes service discovery. The application needs read-only access to Services and Ingresses on all namespaces, but it shouldn't be granted any further privileges (like modifying or deleting resources). The ClusterRole for such an account should look as follows:
@@ -296,16 +292,16 @@ clusterrolebinding.rbac.authorization.k8s.io/external-dns-viewer created
 
 The above definition contains three definitions:
 
-	• A service account to use with the container running the application.
-	• A ClusterRole that grants the read-only verbs to the Service and Ingress resources.
-	• A ClusterRoleBinding which works that same as a RoleBinding but with ClusterRoles. The subject here is ServiceAccount rather than User, and its name is external-dns.
+    • A service account to use with the container running the application.
+    • A ClusterRole that grants the read-only verbs to the Service and Ingress resources.
+    • A ClusterRoleBinding which works that same as a RoleBinding but with ClusterRoles. The subject here is ServiceAccount rather than User, and its name is external-dns.
 
 Another everyday use case with ClusterRoles is granting cluster administrators different privileges depending on their roles. For example, a junior cluster operator should have read-only access to resources to get acquainted; then more access can be granted later on.
 
 ## Note
 
-	• Kubernetes uses RBAC to control different access levels to its resources depending on the rules set in Roles or ClusterRoles.
-	• Roles and ClusterRoles use API namespaces, verbs and resources to secure access.
-	• Roles and ClusterRoles are ineffective unless they are linked to a subject (User, serviceAccount...etc) through RoleBinding or ClusterRoleBinding.
-	• Roles work within the constraints of a namespace. It would default to the “default” namespace if none was specified.
-	• ClusterRoles are not bound to a specific namespace as they apply to the cluster as a whole.
+    • Kubernetes uses RBAC to control different access levels to its resources depending on the rules set in Roles or ClusterRoles.
+    • Roles and ClusterRoles use API namespaces, verbs and resources to secure access.
+    • Roles and ClusterRoles are ineffective unless they are linked to a subject (User, serviceAccount...etc) through RoleBinding or ClusterRoleBinding.
+    • Roles work within the constraints of a namespace. It would default to the “default” namespace if none was specified.
+    • ClusterRoles are not bound to a specific namespace as they apply to the cluster as a whole.

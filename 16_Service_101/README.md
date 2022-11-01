@@ -2,17 +2,15 @@
 
 Say, you have pods running nginx in a flat, cluster wide, address space. In theory, you could talk to these pods directly, but what happens when a node dies? The pods die with it, and the Deployment will create new ones, with different IPs. This is the problem a Service solves.
 
-
 Kubernetes Pods are mortal. They are born and when they die, they are not resurrected. If you use a Deployment to run your app, it can create and destroy Pods dynamically. Each Pod gets its own IP address, however in a Deployment, the set of Pods running in one moment in time could be different from the set of Pods running that application a moment later.
 
 This leads to a problem: if some set of Pods (call them “backends”) provides functionality to other Pods (call them “frontends”) inside your cluster, how do the frontends find out and keep track of which IP address to connect to, so that the frontend can use the backend part of the workload?
 
 Enter Services
 
-
 A Kubernetes Service is an abstraction which defines a logical set of Pods running somewhere in your cluster, that all provide the same functionality. When created, each Service is assigned a unique IP address (also called clusterIP). This address is tied to the lifespan of the Service, and will not change while the Service is alive. Pods can be configured to talk to the Service, and know that communication to the Service will be automatically load-balanced out to some pod that is a member of the Service.
 
-## Deploying  a Kubernetes Service
+## Deploying a Kubernetes Service
 
 Like all other Kubernetes objects, a Service can be defined using a YAML or JSON file that contains the necessary definitions (they can also be created using just the command line, but this is not the recommended practice). Let’s create a NodeJS service definition. It may look like the following:
 
@@ -29,7 +27,6 @@ kubectl get svc my-nginx
 ```
 
 As mentioned previously, a Service is backed by a group of Pods. These Pods are exposed through endpoints. The Service’s selector will be evaluated continuously and the results will be POSTed to an Endpoints object also named my-nginx. When a Pod dies, it is automatically removed from the endpoints, and new Pods matching the Service’s selector will automatically get added to the endpoints. Check the endpoints, and note that the IPs are the same as the Pods created in the first step:
-
 
 ```
 kubectl describe svc my-nginx
@@ -82,7 +79,6 @@ MY_NGINX_SERVICE_PORT=80
 KUBERNETES_SERVICE_PORT_HTTPS=443
 ```
 
-
 ### DNS
 
 Kubernetes offers a DNS cluster addon Service that automatically assigns dns names to other Services. You can check if it’s running on your cluster:
@@ -114,7 +110,6 @@ Address 1: 10.0.0.10
 Name:      my-nginx
 Address 1: 10.0.162.149
 ```
-
 
 ## Exposing the Service
 
@@ -160,7 +155,7 @@ $ curl https://<EXTERNAL-IP>:<NODE-PORT> -k
 ...
 <h1>Welcome to nginx!</h1>
 ```
-  
+
 Let’s now recreate the Service to use a cloud load balancer, just change the Type of my-nginx Service from NodePort to LoadBalancer:
 
 ```
@@ -202,11 +197,9 @@ spec:
   - name: https
     port: 443
     targetPort: 443
-  ```
-  
-  Notice that if you are defining more than one port in a service, you must provide a name for each port so that they are recognizable.
+```
 
-
+Notice that if you are defining more than one port in a service, you must provide a name for each port so that they are recognizable.
 
 ## Kubernetes Service Without Pods?
 
@@ -233,7 +226,7 @@ spec:
   - name: https
     port: 443
     targetPort: 443
-   ```
+```
 
 Here, we have a service that connects to an external NodeJS backend on port 3000. But, this definition does not have pod selectors. It doesn’t even have the external IP address of the backend! So, how will the service route traffic then?
 
@@ -256,8 +249,6 @@ server {
 ```
 
 The proxy_pass part here must point to the service’s IP address or DNS name to be able to reach one of the NodeJS pods. In Kubernetes, there are two ways to discover services: (1) environment variables, or (2) DNS. let’s talk about each one of them in a bit of detail.
-
-
 
 ## Connectivity Methods
 
@@ -295,7 +286,6 @@ As mentioned, the default behavior of Kubernetes is to assign an internal IP add
 Let’s consider a common use case. If you host, for example, MongoDB on a single pod, you will need a service definition on top of it to take care of the pod being restarted and acquiring a new IP address. But you don’t need any load balancing or routing. You only need the service to patch the request to the backend pod. Hence, the name: headless: a service that does have an IP.
 
 But, what if a headless service was created and was managing more than one pod? In this case, any query to the service’s DNS name will return a list of all the pods managed by this service. The request will accept the first IP address returned. Obviously, this is not the best load-balancing algorithm if at all. The bottom line here, use a headless service when you need a single pod.
-
 
 ### NodePort
 

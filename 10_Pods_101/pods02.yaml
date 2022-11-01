@@ -4,9 +4,9 @@ metadata:
   name: webserver
 spec:
   containers:
-  - name: webserver
-    image: nginx:latest
-    ports:
-    - containerPort: 80
-  - name: webwatcher
-    image: afakharany/watcher:latest
+    - name: webserver
+      image: nginx:latest
+      ports:
+        - containerPort: 80
+    - name: webwatcher
+      image: afakharany/watcher:latest

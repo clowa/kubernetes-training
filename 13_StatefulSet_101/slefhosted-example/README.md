@@ -14,10 +14,9 @@ A Kubernetes Service acts as an abstraction layer. In a stateless application li
 
 # Deploying a Stateful Application Using Kubernetes Statefulset
 
-If you look at [web_stateful.yaml](https://github.com/collabnix/kubelabs/blob/master/StatefulSets101/web_stateful.yaml) file, you will find a snippet around how we are deploying a stateful application. For simplicity, are we using Nginx  as the pod image. The deployment is made up of 2 Nginx web servers; both of them are connected to a persistent volume. For example, look at web_stateful.yaml file under the current location.
+If you look at [web_stateful.yaml](https://github.com/collabnix/kubelabs/blob/master/StatefulSets101/web_stateful.yaml) file, you will find a snippet around how we are deploying a stateful application. For simplicity, are we using Nginx as the pod image. The deployment is made up of 2 Nginx web servers; both of them are connected to a persistent volume. For example, look at web_stateful.yaml file under the current location.
 
 Before we start discussing the details of this definition, notice that the file actually contains two definitions: the storage class that the StatefulSet is using and the StatefulSet itself.
-
 
 ## Storage Class
 
@@ -30,7 +29,6 @@ Persistent volumes act as an abstraction layer to save the user from going into 
 A Persistent Volume Claim is a request to use a Persistent Volume. If we are to use the Pods and Nodes analogy, then consider Persistent Volumes as the “nodes” and Persistent Volume Claims as the “pods” that use the node resources. The resources we are talking about here are storage properties, such as storage size, latency, throughput, etc.
 
 Under this tutorial, we will see example of NFS server.
-
 
 ## Deploying NFS Server
 
@@ -50,7 +48,6 @@ docker run -d --net=host \
 ```
 
 The NFS server exposes two directories, data-0001 and data-0002. In the next steps, this is used to store data.
-
 
 ## Deploying Persistent Volume
 
@@ -78,7 +75,6 @@ spec:
 ```
 
 The spec defines additional metadata about the persistent volume, including how much space is available and if it has read/write access.
-
 
 ## Task
 
@@ -113,8 +109,8 @@ spec:
   resources:
     requests:
       storage: 3Gi
-  ```
-  
+```
+
 ## Task
 
 Create two claims for two different applications. A MySQL Pod will use one claim, the other used by an HTTP server.
@@ -129,7 +125,7 @@ kubectl create -f pvc-http.yaml
 
 View the contents of the files using cat pvc-mysql.yaml pvc-http.yaml
 
-Once created, view all PersistentVolumesClaims in the cluster using 
+Once created, view all PersistentVolumesClaims in the cluster using
 
 ```
 kubectl get pvc.
@@ -150,12 +146,12 @@ When a deployment is defined, it can assign itself to a previous claim. The foll
     - name: mysql-persistent-storage
       persistentVolumeClaim:
         claimName: claim-mysql
-        
- ```
-   
- ## Task
-   
- Launch two new Pods with Persistent Volume Claims. Volumes are mapped to the correct directory when the Pods start allowing applications to read/write as if it was a local directory.
+
+```
+
+## Task
+
+Launch two new Pods with Persistent Volume Claims. Volumes are mapped to the correct directory when the Pods start allowing applications to read/write as if it was a local directory.
 
 ```
 kubectl create -f pod-mysql.yaml
@@ -171,7 +167,7 @@ Use the command below to view the definition of the Pods.
 cat pod-mysql.yaml pod-www.yaml
 ```
 
-You can see the status of the Pods starting using 
+You can see the status of the Pods starting using
 
 ```
 kubectl get pods
@@ -210,7 +206,6 @@ docker exec -it nfs-server bash -c "echo 'Hello NFS World' > /exports/data-0001/
 ```
 curl $ip
 ```
-
 
 ## Recreate Pod
 

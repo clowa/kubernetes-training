@@ -3,11 +3,13 @@
 We may want to override any other NetworkPolicy that restricts traffic to your pods, perhaps for troubleshooting a connection issue. This can be done by applying the following NetworkPolicy definition:
 
 ## Steps
+
 ```
 git clone https://github.com/collabnix/kubelabs.git
 cd kubelabs/Network_Policies101/
 ```
-Run the following to create a NetworkPolicy which allows traffic  from any pods in the network-policy-demo namespace.
+
+Run the following to create a NetworkPolicy which allows traffic from any pods in the network-policy-demo namespace.
 
 ```
 kubectl apply -f allow-ingress.yaml
