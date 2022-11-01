@@ -1,53 +1,53 @@
-# Deploying Your First Nginx Pod
+# Steps
 
-## What are K8s Pods?
-
-- Kubernetes pods are the foundational unit for all higher Kubernetes objects.
-- A pod hosts one or more containers.
-- It can be created using either a command or a YAML/JSON file.
-- Use `kubectl` to create pods, view the running ones, modify their configuration, or terminate them. Kuberbetes will attempt to restart a failing pod by default.
-- If the pod fails to start indefinitely, we can use the `kubectl describe` command to know what went wrong.
-
-## Why does Kubernetes use a Pod as the smallest deployable unit, and not a single container?
-
-While it would seem simpler to just deploy a single container directly, there are good reasons to add a layer of abstraction represented by the Pod. A container is an existing entity, which refers to a specific thing. That specific thing might be a Docker container, but it might also be a [rkt](https://coreos.com/rkt/) container, or a VM managed by Virtlet. Each of these has different requirements.
-
-What’s more, to manage a container, Kubernetes needs additional information, such as a restart policy, which defines what to do with a container when it terminates, or a liveness probe, which defines an action to detect if a process in a container is still alive from the application’s perspective, such as a web server responding to HTTP requests.
-
-Instead of overloading the existing “thing” with additional properties, Kubernetes architects have decided to use a new entity, the Pod, that logically contains (wraps) one or more containers that should be managed as a single entity.
-
-## Why does Kubernetes allow more than one container in a Pod?
-
-Containers in a Pod run on a “logical host”; they use the same network namespace (in other words, the same IP address and port space), and the same [IPC](https://en.wikipedia.org/wiki/Inter-process_communication) namespace. They can also use shared volumes. These properties make it possible for these containers to efficiently communicate, ensuring data locality. Also, Pods enable you to manage several tightly coupled application containers as a single unit.
-
-So if an application needs several containers running on the same host, why not just make a single container with everything you need? Well first, you’re likely to violate the “one process per container” principle. This is important because with multiple processes in the same container it is harder to troubleshoot the container. That is because logs from different processes will be mixed together and it is harder manage the processes lifecycle. For example to take care of “zombie” processes when their parent process dies. Second, using several containers for an application is simpler, more transparent, and enables decoupling software dependencies. Also, more granular containers can be reused between teams.
-
-
-## Pre-requisite:
-
-    {{< kat-button >}}
-
-## Steps
-
-```
-git clone https://github.com/collabnix/kubelabs
-cd kubelabs/pods101
+```bash
+git clone https://github.com/clowa/kubernetes-training
+cd kubernetes-training/10_Pods_101
 kubectl apply -f pods01.yaml
 ```
 
 ## Viewing Your Pods
 
-```
+```bash
 kubectl get pods
+```
+
+## First visit of the website
+
+```bash
+kubectl proxy
+```
+
+Open [http://localhost:8001/api/v1/namespaces/default/pods/http:webserver:80/proxy/](http://localhost:8001/api/v1/namespaces/default/pods/http:webserver:80/proxy/) in your Browser
+
+## Get logs of Pod
+
+```bash
+$ kubectl logs webserver
+
+/docker-entrypoint.sh: /docker-entrypoint.d/ is not empty, will attempt to perform configuration
+/docker-entrypoint.sh: Looking for shell scripts in /docker-entrypoint.d/
+/docker-entrypoint.sh: Launching /docker-entrypoint.d/10-listen-on-ipv6-by-default.sh
+10-listen-on-ipv6-by-default.sh: Getting the checksum of /etc/nginx/conf.d/default.conf
+10-listen-on-ipv6-by-default.sh: Enabled listen on IPv6 in /etc/nginx/conf.d/default.conf
+/docker-entrypoint.sh: Launching /docker-entrypoint.d/20-envsubst-on-templates.sh
+/docker-entrypoint.sh: Configuration complete; ready for start up
+
+```
+
+You shoud see the website request you made before. Something like this:
+
+```txt
+10.224.0.12 - - [01/Nov/2022:14:49:52 +0000] "GET / HTTP/1.1" 200 615 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36 Edg/107.0.1418.24" "127.0.0.1, 93.233.184.3"
 ```
 
 ## Which Node Is This Pod Running On?
 
-```
+```bash
 kubectl get pods -o wide
 ```
 
-```
+```yaml
 $ kubectl describe po webserver
 Name:               webserver
 Namespace:          default
@@ -100,11 +100,11 @@ Events:
   Normal  Pulled     2m50s  kubelet, gke-standard-cluster-1-default-pool-78257330-5hs8  Successfully pulled image "nginx:latest"
   Normal  Created    2m48s  kubelet, gke-standard-cluster-1-default-pool-78257330-5hs8  Created container
   Normal  Started    2m48s  kubelet, gke-standard-cluster-1-default-pool-78257330-5hs8  Started container
- ```
-  
-## Output in JSON
- 
 ```
+
+## Output in JSON
+
+```json
 $ kubectl get pods -o json
 {
     "apiVersion": "v1",
@@ -144,26 +144,23 @@ tainers\":[{\"image\":\"nginx:latest\",\"name\":\"webserver\",\"ports\":[{\"cont
                         },
                         "terminationMessagePath": "/dev/termination-log",
                         "terminationMessagePolicy": "File",
-             
- ```
- 
-
-
-## Executing Commands Against Pods
-
 
 ```
+
+## Executing Commands within Pods
+
+```bash
 $ kubectl exec -it webserver -- /bin/bash
 root@webserver:/#
 ```
 
-```
+```bash
 root@webserver:/# cat /etc/os-release
-PRETTY_NAME="Debian GNU/Linux 10 (buster)"
+PRETTY_NAME="Debian GNU/Linux 11 (bullseye)"
 NAME="Debian GNU/Linux"
-VERSION_ID="10"
-VERSION="10 (buster)"
-VERSION_CODENAME=buster
+VERSION_ID="11"
+VERSION="11 (bullseye)"
+VERSION_CODENAME=bullseye
 ID=debian
 HOME_URL="https://www.debian.org/"
 SUPPORT_URL="https://www.debian.org/support"
@@ -172,82 +169,56 @@ BUG_REPORT_URL="https://bugs.debian.org/"
 
 Please exit from the shell (`/bin/bash`) session.
 
-```
+```bash
 root@webserver:/# exit
 ```
 
-
 ## Deleting the Pod
-  
-```
+
+```bash
 $ kubectl delete -f pods01.yaml
 pod "webserver" deleted
 
 $ kubectl get po -o wide
 No resources found.
 ```
-## Get logs of Pod
 
-```
-$ kubectl logs webserver
-
-/docker-entrypoint.sh: /docker-entrypoint.d/ is not empty, will attempt to perform configuration
-/docker-entrypoint.sh: Looking for shell scripts in /docker-entrypoint.d/
-/docker-entrypoint.sh: Launching /docker-entrypoint.d/10-listen-on-ipv6-by-default.sh
-10-listen-on-ipv6-by-default.sh: Getting the checksum of /etc/nginx/conf.d/default.conf
-10-listen-on-ipv6-by-default.sh: Enabled listen on IPv6 in /etc/nginx/conf.d/default.conf
-/docker-entrypoint.sh: Launching /docker-entrypoint.d/20-envsubst-on-templates.sh
-/docker-entrypoint.sh: Configuration complete; ready for start up
-
-```
 # Ading a 2nd container to a Pod
 
 In the microservices architecture, each module should live in its own space and communicate with other modules following a set of rules. But, sometimes we need to deviate a little from this principle. Suppose you have an Nginx web server running and we need to analyze its web logs in real-time. The logs we need to parse are obtained from GET requests to the web server. The developers created a log watcher application that will do this job and they built a container for it. In typical conditions, you’d have a pod for Nginx and another for the log watcher. However, we need to eliminate any network latency so that the watcher can analyze logs the moment they are available. A solution for this is to place both containers on the same pod.
 
 Having both containers on the same pod allows them to communicate through the loopback interface (`ifconfig lo`) as if they were two processes running on the same host. They also share the same storage volume.
 
+Let us see how a pod can host more than one container. Let’s take a look to the [`pods02.yaml`](pods02.yaml) file. It contains the following lines:
 
-Let us see  how a pod can host more than one container. Let’s take a look to the [`pods02.yaml`](pods02.yaml) file. It contains the following lines:
-
-```
+```yaml
 apiVersion: v1
 kind: Pod
 metadata:
   name: webserver
 spec:
   containers:
-  - name: webserver
-    image: nginx:latest
-    ports:
-    - containerPort: 80
-  - name: webwatcher
-    image: afakharany/watcher:latest
+    - name: webserver
+      image: nginx:latest
+      ports:
+        - containerPort: 80
+    - name: webwatcher
+      image: afakharany/watcher:latest
 ```
 
 Run the following command:
 
-```
-$ kubectl apply -f pods02.yaml
+```bash
+kubectl apply -f pods02.yaml
 ```
 
-
-
-```
-$ kubectl get po -o wide
-NAME        READY   STATUS              RESTARTS   AGE   IP       NODE                                                NOMINATED NODE   READINESS GATES
-webserver   0/2     ContainerCreating   0          13s   <none>   gke-standard-cluster-1-default-pool-78257330-5hs8   <none>           <none>
- ```
- 
- ```
-$ kubectl get po,svc,deploy
+```bash
+$ kubectl get po
 NAME            READY   STATUS    RESTARTS   AGE
 pod/webserver   2/2     Running   0          3m6s
-NAME                 TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE
-service/kubernetes   ClusterIP   10.12.0.1    <none>        443/TCP   107m
 ```
 
-
-```
+```bash
 $ kubectl get po -o wide
 NAME        READY   STATUS    RESTARTS   AGE     IP         NODE                                                NOMINATED NODE   READINESS GATES
 webserver   2/2     Running   0          3m37s   10.8.0.5   gke-standard-cluster-1-default-pool-78257330-5hs8   <none>           <none>
@@ -255,12 +226,11 @@ webserver   2/2     Running   0          3m37s   10.8.0.5   gke-standard-cluster
 
 ## How to verify 2 containers are running inside a Pod?
 
+```bash
+kubectl describe po
+```
 
-```
-$ kubectl describe po
-```
-
-```
+```yaml
 Containers:
   webserver:
     Container ID:   docker://0564fcb88f7c329610e7da24cba9de6555c0183814cf517e55d2816c6539b829
@@ -286,11 +256,11 @@ Containers:
     Ready:          True
     Restart Count:  0
     Requests:
- ```
+```
 
 Since we have two containers in a pod, we will need to use the `-c` option with `kubectl` when we need to address a specific container. For example:
 
-```
+```bash
 $ kubectl exec -it webserver -c webwatcher -- /bin/bash
 
 root@webserver:/# cat /etc/hosts
@@ -306,13 +276,13 @@ fe00::2 ip6-allrouters
 
 Please exit from the shell (`/bin/bash`) session.
 
-```
+```bash
 root@webserver:/# exit
 ```
 
 ## Cleaning up
 
-```
+```bash
 kubectl delete -f pods02.yaml
 ```
 
@@ -324,9 +294,9 @@ Let's talk about communication between containers in a Pod. Having multiple cont
 
 The primary purpose of a multi-container Pod is to support co-located, co-managed helper processes for a primary application. There are some general patterns for using helper processes in Pods:
 
-*Sidecar containers* help the main container. Some examples include log or data change watchers, monitoring adapters, and so on. A log watcher, for example, can be built once by a different team and reused across different applications. Another example of a sidecar container is a file or data loader that generates data for the main container.
+_Sidecar containers_ help the main container. Some examples include log or data change watchers, monitoring adapters, and so on. A log watcher, for example, can be built once by a different team and reused across different applications. Another example of a sidecar container is a file or data loader that generates data for the main container.
 
-*Proxies, bridges, and adapters* connect the main container with the external world. For example, Apache HTTP server or nginx can serve static files. It can also act as a reverse proxy to a web application in the main container to log and limit HTTP requests. 
+_Proxies, bridges, and adapters_ connect the main container with the external world. For example, Apache HTTP server or nginx can serve static files. It can also act as a reverse proxy to a web application in the main container to log and limit HTTP requests.
 Another example is a helper container that re-routes requests from the main container to the external world. This makes it possible for the main container to connect to the localhost to access, for example, an external database, but without any service discovery.
 
 ## Shared volumes in a Kubernetes Pod
@@ -337,51 +307,49 @@ Kubernetes Volumes enables data to survive container restarts, but these volumes
 
 A standard use case for a multi-container Pod with a shared Volume is when one container writes logs or other files to the shared directory, and the other container reads from the shared directory. For example, we can create a Pod like so ([pods03.yaml](pods03.yaml)):
 
-```
+```yaml
 apiVersion: v1
 kind: Pod
 metadata:
   name: mc1
 spec:
   volumes:
-  - name: html
-    emptyDir: {}
+    - name: html
+      emptyDir: {}
   containers:
-  - name: 1st
-    image: nginx
-    volumeMounts:
-    - name: html
-      mountPath: /usr/share/nginx/html
-  - name: 2nd
-    image: debian
-    volumeMounts:
-    - name: html
-      mountPath: /html
-    command: ["/bin/sh", "-c"]
-    args:
-      - while true; do
-          date >> /html/index.html;
+    - name: 1st
+      image: nginx
+      volumeMounts:
+        - name: html
+          mountPath: /usr/share/nginx/html
+    - name: 2nd
+      image: debian
+      volumeMounts:
+        - name: html
+          mountPath: /html
+      command: ["/bin/sh", "-c"]
+      args:
+        - |
+          while true; do
+          printf "%s </br>" "$(date)" >> /html/index.html;
           sleep 1;
-        done
+          done
 ```
 
 In this file (`pods03.yaml`) a volume named `html` has been defined. Its type is `emptyDir`, which means that the volume is first created when a Pod is assigned to a node, and exists as long as that Pod is running on that node. As the name says, it is initially empty. The `1st` container runs nginx server and has the shared volume mounted to the directory `/usr/share/nginx/html`. The `2nd` container uses the Debian image and has the shared volume mounted to the directory `/html`. Every second, the `2nd` container adds the current date and time into the `index.html` file, which is located in the shared volume. When the user makes an HTTP request to the Pod, the Nginx server reads this file and transfers it back to the user in response to the request.
 
-
 ![Image](https://raw.githubusercontent.com/collabnix/kubelabs/master/pods101/multicontainerpod.png)
 
-```
+```bash
 kubectl apply -f pods03.yaml
 ```
 
-```
-[Captains-Bay]🚩 >  kubectl get po,svc
+```bash
+$ kubectl get po
 NAME      READY     STATUS    RESTARTS   AGE
 po/mc1    2/2       Running   0          11s
 
-NAME             TYPE        CLUSTER-IP    EXTERNAL-IP   PORT(S)   AGE
-svc/kubernetes   ClusterIP   10.15.240.1   <none>        443/TCP   1h
-[Captains-Bay]🚩 >  kubectl describe po mc1
+$ kubectl describe po mc1
 Name:         mc1
 Namespace:    default
 Node:         gke-k8s-lab1-default-pool-fd9ef5ad-pc18/10.140.0.16
@@ -429,14 +397,14 @@ Containers:
       /var/run/secrets/kubernetes.io/serviceaccount from default-token-xhgmm (ro)
 Conditions:
   Type              Status
-  Initialized       True 
-  Ready             True 
-  ContainersReady   True 
-  PodScheduled      True 
+  Initialized       True
+  Ready             True
+  ContainersReady   True
+  PodScheduled      True
 Volumes:
   html:
     Type:    EmptyDir (a temporary directory that shares a pod's lifetime)
-    Medium:  
+    Medium:
   default-token-xhgmm:
     Type:        Secret (a volume populated by a Secret)
     SecretName:  default-token-xhgmm
@@ -459,38 +427,25 @@ Events:
   Normal  Started    12s   kubelet, gke-k8s-lab1-default-pool-fd9ef5ad-pc18  Started container
 ```
 
+## Visit the website
 
+```bash
+kubectl proxy
+```
 
-```
-$ kubectl exec mc1 -c 1st -- /bin/cat /usr/share/nginx/html/index.html
-...
-Wed Jan  8 08:59:14 UTC 2020
-Wed Jan  8 08:59:15 UTC 2020
-Wed Jan  8 08:59:16 UTC 2020
- 
-$ kubectl exec mc1 -c 2nd -- /bin/cat /html/index.html
-...
-Wed Jan  8 08:59:14 UTC 2020
-Wed Jan  8 08:59:15 UTC 2020
-Wed Jan  8 08:59:16 UTC 2020
-```
+Open [http://localhost:8001/api/v1/namespaces/default/pods/http:mc1:80/proxy/](http://localhost:8001/api/v1/namespaces/default/pods/http:mc1:80/proxy/) in your Browser
 
 ## Cleaning Up
 
-```
+```bash
 kubectl delete -f pods03.yaml
 ```
 
 # Contributor
 
 [Ajeet S Raina](https://twitter.com/ajeetsraina)
+[Cedric Ahlers](https://github.com/clowa)
 
 # Reviewers
 
 [vinay agarwal](https://twitter.com/vnyagarwal)
-
-[Next >>](https://collabnix.github.io/kubelabs/replicaset101/index.html#how-does-replicaset-manage-pods)
-
-
-
-
