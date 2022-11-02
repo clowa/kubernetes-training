@@ -42,6 +42,7 @@ metadata:
     app.kubernetes.io/name: mysql
     readonly: "true"
 spec:
+  # type: LoadBalancer
   ports:
     - name: mysql
       port: 3306
