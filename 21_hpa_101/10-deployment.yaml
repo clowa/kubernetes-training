@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hpa-example
+spec:
+  selector:
+    matchLabels:
+      app: hpa-example
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: hpa-example
+    spec:
+      restartPolicy: Always
+      containers:
+        - name: hpa-example
+          image: vamin2/node-example
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3000
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 80m
+              memory: 128Mi

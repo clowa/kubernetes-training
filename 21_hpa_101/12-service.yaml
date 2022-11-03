@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: hpa-example
+  labels:
+    app: hpa-example
+spec:
+  selector:
+    app: hpa-example
+  ports:
+    - port: 3000
+      protocol: TCP
+  # type: LoadBalancer

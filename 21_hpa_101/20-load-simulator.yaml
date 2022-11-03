@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: load-simulator
+spec:
+  selector:
+    matchLabels:
+      app: load-simulator
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: load-simulator
+    spec:
+      containers:
+        - name: apache-benchmark
+          image: jordi/ab
+          args:
+            - "-c"
+            - "500"
+            - "-n"
+            - "10000"
+            - "http://hpa-example:3000/"
+
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 1000m
+              memory: 512Mi
