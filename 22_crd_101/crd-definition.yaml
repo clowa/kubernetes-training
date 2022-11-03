@@ -1,0 +1,43 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: myplatforms.contoso.com
+spec:
+  group: contoso.com
+  names:
+    kind: MyPlatform
+    plural: myplatforms
+    singular: myplatform
+    shortNames:
+      - myp
+  scope: Namespaced
+  versions:
+    - name: v1alpha1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              properties:
+                appId:
+                  type: string
+                language:
+                  type: string
+                  enum: ["csharp", "go", "python"]
+                os:
+                  type: string
+                  enum: ["linux", "windows"]
+                instanceSize:
+                  type: string
+                  enum: ["small", "medium", "large"]
+                environmentType:
+                  type: string
+                  enum: ["dev", "test", "prod"]
+                replicas:
+                  type: integer
+                  minimum: 1
+              required: ["appId", "language", "environmentType"]
+          required: ["spec"]
