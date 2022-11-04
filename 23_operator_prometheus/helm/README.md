@@ -7,7 +7,8 @@ Deploy the prometheus operator via helm
 Add the helm repository to your local machine
 
 ```bash
-
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo update
 ```
 
 Create a new namespace for your first helm deployment
@@ -68,7 +69,7 @@ Let's edit the replica count and the verion of the prometheus cluster and see wh
 kubectl get pods -w -n monitoring
 ```
 
-Now let's edit our prometheus cluster. Let' say we will downgreat our prometheus version by setting `version: v2.38.1` and also increase the replicas to 3.
+Now let's edit our prometheus cluster. Let' say we will downgrade our prometheus version by setting `version: v2.38.1` and also increase the replicas to 3.
 
 ```bash
 kubectl edit prometheus prometheus-kube-promethe-prometheus -n monitoring
